@@ -49,7 +49,7 @@
     
     <form action="https://formspree.io/f/xgolnkvq" method="POST" id="orderForm">
         
-        <input type="hidden" name="_next" value="https://TU_USUARIO.github.io/TU_REPO/gracias.html">
+        <input type="hidden" name="_next" value="https://PapiLord19.github.io/menufrikidogos/gracias.html">
         <input type="hidden" name="PEDIDO_RESUMIDO" id="pedido-resumido">
         
         <div class="categoria-titulo">🌭 Hot Dogs</div>
@@ -312,10 +312,10 @@
         const status = document.getElementById('status-negocio');
         const abierto = (dia >= 2 && dia <= 6) && (hora >= 1900 && hora <= 2330);
         if (!abierto) {
-            btn.disabled = false;
+            btn.disabled = true;
             status.innerHTML = "<span style='color: #e74c3c;'>🔴 CERRADO (Mar-Sáb 7pm-11:30pm)</span>";
         } else {
-            btn.disabled = true;
+            btn.disabled = false;
             status.innerHTML = "<span style='color: #2ecc71;'>🟢 ABIERTO</span>";
         }
     }
