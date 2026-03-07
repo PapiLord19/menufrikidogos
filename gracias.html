@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>¡Pedido Recibido! - Frikidogos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --primary: #e67e22; 
+            --dark: #2d3436; 
+            --bg: #f5f6fa; 
+            --card-bg: #ffffff; 
+            --text: #2d3436; 
+            --whatsapp: #25d366;
+        }
+        
+        body.dark-mode { 
+            --bg: #121212; 
+            --card-bg: #1e1e1e; 
+            --text: #f5f6fa; 
+        }
+
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background: var(--bg); 
+            color: var(--text); 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
+            transition: 0.3s; 
+        }
+
+        .thank-you-card { 
+            background: var(--card-bg); 
+            padding: 40px 20px; 
+            border-radius: 20px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+            text-align: center; 
+            max-width: 400px; 
+            width: 90%; 
+        }
+
+        .icon-check { 
+            font-size: 60px; 
+            color: #2ecc71; 
+            margin-bottom: 20px; 
+        }
+
+        h1 { margin-bottom: 10px; font-size: 24px; }
+        p { opacity: 0.8; margin-bottom: 30px; line-height: 1.5; }
+
+        .btn-whatsapp { 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 15px; 
+            background: var(--whatsapp); 
+            color: white; 
+            text-decoration: none; 
+            border-radius: 12px; 
+            font-weight: bold; 
+            margin-bottom: 15px;
+            transition: 0.2s;
+        }
+
+        .btn-regresar { 
+            display: block; 
+            padding: 15px; 
+            background: transparent; 
+            color: var(--text); 
+            text-decoration: none; 
+            border: 2px solid var(--primary);
+            border-radius: 12px; 
+            font-weight: bold; 
+            transition: 0.2s; 
+        }
+
+        .btn-whatsapp:hover, .btn-regresar:hover { 
+            transform: scale(1.03); 
+            filter: brightness(1.1); 
+        }
+    </style>
+</head>
+<body>
+
+<div class="thank-you-card">
+    <div class="icon-check">✅</div>
+    <h1 id="thanks-name">¡Gracias por tu pedido!</h1>
+    <p>Tu orden ha sido enviada. Para agilizar la entrega, presiona el botón de abajo para avisarnos por WhatsApp.</p>
+    
+    <a href="#" id="wa-link" class="btn-whatsapp">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" width="20" style="filter: brightness(0) invert(1);">
+        Confirmar por WhatsApp
+    </a>
+
+    <a href="index.html" class="btn-regresar">Hacer otro pedido</a>
+</div>
+
+<script>
+    function configurarPagina() {
+        // 1. Detectar Tema
+        const temaGuardado = localStorage.getItem('theme');
+        if (temaGuardado === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
+
+        // 2. Personalizar Nombre
+        const nombre = localStorage.getItem('f_name') || "Cliente";
+        document.getElementById('thanks-name').innerText = `¡Gracias, ${nombre}!`;
+
+        // 3. Configurar Link de WhatsApp
+        // Cambia el número 52XXXXXXXXXX por tu número real de Manzanillo
+        const telefonoNegocio = "523141648207"; 
+        const mensaje = encodeURIComponent(`¡Hola! Soy ${nombre}, acabo de enviar un pedido desde el sitio web de Frikidogos. 🌭🍔`);
+        document.getElementById('wa-link').href = `https://wa.me/${telefonoNegocio}?text=${mensaje}`;
+    }
+
+    window.onload = configurarPagina;
+</script>
+
+</body>
+</html>

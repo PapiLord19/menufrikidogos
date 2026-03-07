@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frikidogos - Menú Inteligente</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #e67e22; --dark: #2d3436; --bg: #f5f6fa; --card-bg: #ffffff; --text: #2d3436; --border: #eeeeee; }
+        body.dark-mode { --bg: #121212; --card-bg: #1e1e1e; --text: #f5f6fa; --border: #444; }
+        body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; padding: 15px; margin: 0; transition: 0.3s; }
+        .card { background: var(--card-bg); padding: 20px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
+        .header { text-align: center; margin-bottom: 20px; position: relative; }
+        .theme-toggle { position: absolute; top: 0; right: 0; background: var(--primary); border: none; color: white; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; }
+        .map-container { width: 100%; height: 180px; border-radius: 15px; overflow: hidden; margin-bottom: 20px; border: 2px solid var(--border); }
+        .categoria-titulo { background: var(--dark); color: white; padding: 10px 15px; border-radius: 10px; margin: 25px 0 10px; font-weight: 600; }
+        .producto-item { padding: 12px; border: 1px solid var(--border); border-radius: 15px; margin-bottom: 10px; cursor: pointer; background: var(--card-bg); position: relative; transition: 0.2s; }
+        .producto-item.abierto { border-color: var(--primary); box-shadow: 0 5px 15px rgba(230,126,34,0.1); }
+        .prod-main { display: flex; align-items: center; gap: 12px; }
+        .img-prod { width: 60px; height: 60px; border-radius: 10px; object-fit: cover; background: #eee; }
+        .precio-unit { color: var(--primary); font-weight: bold; }
+        .badge-cant { background: var(--primary); color: white; padding: 2px 9px; border-radius: 12px; font-size: 0.8em; position: absolute; right: 15px; top: 30px; display: none; }
+        .detalles-producto { display: none; flex-direction: column; gap: 12px; margin-top: 15px; padding-top: 15px; border-top: 1px dashed #ddd; }
+        .ingredientes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: rgba(0,0,0,0.05); padding: 10px; border-radius: 10px; font-size: 0.85em; }
+        .controles { display: flex; align-items: center; gap: 15px; background: #f1f2f6; padding: 5px 15px; border-radius: 20px; color: #2d3436; }
+        .btn-qty { background: white; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-weight: bold; color: var(--primary); }
+        .papas-box { background: rgba(230, 126, 34, 0.1); padding: 10px; border-radius: 10px; border: 1px solid var(--primary); font-size: 0.9em; }
+        .total-box { margin-top: 25px; padding: 20px; background: var(--dark); border-radius: 15px; color: white; }
+        .btn-enviar { width: 100%; padding: 18px; background: var(--primary); color: white; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 1.1em; }
+        .btn-enviar:disabled { background: #636e72; cursor: not-allowed; opacity: 0.7; }
+        input, select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--card-bg); color: var(--text); box-sizing: border-box; }
+        #welcome-msg { font-size: 0.85em; color: var(--primary); font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="header">
+        <button type="button" class="theme-toggle" onclick="toggleTheme()" id="theme-btn">🌙</button>
+        <img src="logo.png" style="width: 80px; border-radius: 50%; border: 3px solid var(--primary);">
+        <h1>Frikidogos</h1>
+        <div id="welcome-msg"></div>
+        <div id="status-negocio" style="font-weight: bold; margin-top: 5px;"></div>
+    </div>
+
+    <div class="map-container">
+        <iframe src="https://maps.app.goo.gl/qeaxmeNR7cC2sJjLA" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+    </div>
+    
+    <form action="https://formspree.io/f/xgolnkvq" method="POST" id="orderForm">
+        
+        <input type="hidden" name="_next" value="https://TU_USUARIO.github.io/TU_REPO/gracias.html">
+        <input type="hidden" name="PEDIDO_RESUMIDO" id="pedido-resumido">
+        
+        <div class="categoria-titulo">🌭 Hot Dogs</div>
+        
+        <div class="producto-item" onclick="seleccionarProducto('hd1', 40)" id="item-hd1">
+            <div class="prod-main"><img src="hd-normal.jpg" class="img-prod"><div class="info-prod"><strong>Dogo Normal</strong><br><span class="precio-unit">$40.00</span></div><div id="badge-hd1" class="badge-cant">0</div></div>
+            <div id="detalles-hd1" class="detalles-producto" onclick="event.stopPropagation()">
+                <div class="ingredientes-grid">
+                    <label><input type="checkbox" data-pref="HD1_Mayo" checked onchange="saveIng(this)"> Mayonesa</label>
+                    <label><input type="checkbox" data-pref="HD1_Jito" checked onchange="saveIng(this)"> Jitomate</label>
+                    <label><input type="checkbox" data-pref="HD1_Cebo" checked onchange="saveIng(this)"> Cebolla</label>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center;"><span>Cant:</span><div class="controles"><button type="button" class="btn-qty" onclick="actualizar('hd1', -1, 40)">-</button><span id="cant-hd1">0</span><button type="button" class="btn-qty" onclick="actualizar('hd1', 1, 40)">+</button></div></div>
+            </div>
+        </div>
+
+        <div class="producto-item" onclick="seleccionarProducto('hd2', 55)" id="item-hd2">
+            <div class="prod-main"><img src="pizza-dogo.jpg" class="img-prod"><div class="info-prod"><strong>Pizza Dogo</strong><br><span class="precio-unit">$55.00</span></div><div id="badge-hd2" class="badge-cant">0</div></div>
+            <div id="detalles-hd2" class="detalles-producto" onclick="event.stopPropagation()">
+                <div class="ingredientes-grid">
+                    <label><input type="checkbox" data-pref="HD2_Mayo" checked onchange="saveIng(this)"> Mayonesa</label>
+                    <label><input type="checkbox" data-pref="HD2_Jito" onchange="saveIng(this)"> Jitomate</label>
+                    <label><input type="checkbox" data-pref="HD2_Cebo" onchange="saveIng(this)"> Cebolla</label>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center;"><div class="controles"><button type="button" class="btn-qty" onclick="actualizar('hd2', -1, 55)">-</button><span id="cant-hd2">0</span><button type="button" class="btn-qty" onclick="actualizar('hd2', 1, 55)">+</button></div></div>
+            </div>
+        </div>
+
+        <div class="producto-item" onclick="seleccionarProducto('hd3', 55)" id="item-hd3">
+            <div class="prod-main"><img src="chili-dogo.jpg" class="img-prod"><div class="info-prod"><strong>Chili Dogo</strong><br><span class="precio-unit">$55.00</span></div><div id="badge-hd3" class="badge-cant">0</div></div>
+            <div id="detalles-hd3" class="detalles-producto" onclick="event.stopPropagation()">
+                <div class="ingredientes-grid">
+                    <label><input type="checkbox" data-pref="HD3_Mayo" checked onchange="saveIng(this)"> Mayonesa</label>
+                    <label><input type="checkbox" data-pref="HD3_Jito" onchange="saveIng(this)"> Jitomate</label>
+                    <label><input type="checkbox" data-pref="HD3_Cebo" onchange="saveIng(this)"> Cebolla</label>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center;"><div class="controles"><button type="button" class="btn-qty" onclick="actualizar('hd3', -1, 55)">-</button><span id="cant-hd3">0</span><button type="button" class="btn-qty" onclick="actualizar('hd3', 1, 55)">+</button></div></div>
+            </div>
+        </div>
+
+        <div class="producto-item" onclick="seleccionarProducto('hd4', 60)" id="item-hd4">
+            <div class="prod-main"><img src="bulldog.jpg" class="img-prod"><div class="info-prod"><strong>Bulldog</strong><br><span class="precio-unit">$60.00</span></div><div id="badge-hd4" class="badge-cant">0</div></div>
+            <div id="detalles-hd4" class="detalles-producto" onclick="event.stopPropagation()">
+                <div class="ingredientes-grid">
+                    <label><input type="checkbox" data-pref="HD4_Mayo" checked onchange="saveIng(this)"> Mayonesa</label>
+                    <label><input type="checkbox" data-pref="HD4_Jito" checked onchange="saveIng(this)"> Jitomate</label>
+                    <label><input type="checkbox" data-pref="HD4_Cebo" checked onchange="saveIng(this)"> Cebolla</label>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center;"><div class="controles"><button type="button" class="btn-qty" onclick="actualizar('hd4', -1, 60)">-</button><span id="cant-hd4">0</span><button type="button" class="btn-qty" onclick="actualizar('hd4', 1, 60)">+</button></div></div>
+            </div>
+        </div>
+
+        <div class="categoria-titulo">🍔 Hamburguesas</div>
+
+        <div class="producto-item" onclick="seleccionarProducto('bg1', 80)" id="item-bg1">
+            <div class="prod-main"><img src="burger.jpg" class="img-prod"><div class="info-prod"><strong>Burger Normal</strong><br><span class="precio-unit">$80.00</span></div><div id="badge-bg1" class="badge-cant">0</div></div>
+            <div id="detalles-bg1" class="detalles-producto" onclick="event.stopPropagation()">
+                <div class="ingredientes-grid">
+                    <label><input type="checkbox" data-pref="BG1_Mayo" checked onchange="saveIng(this)"> Mayonesa</label>
+                    <label><input type="checkbox" data-pref="BG1_Jito" checked onchange="saveIng(this)"> Jitomate</label>
+                    <label><input type="checkbox" data-pref="BG1_Cebo" checked onchange="saveIng(this)"> Cebolla</label>
+                </div>
+                <div class="papas-box">
+                    <select id="papas-bg1" onchange="togglePapas('bg1')"><option value="no">Sin papas</option><option value="si">Con papas</option></select>
+                    <div id="tipo-bg1" style="display:none; margin-top:5px;"><select id="sel-bg1" onchange="cambioPapas('bg1')"><option value="0">-- Elige papas --</option><option value="40">Normales (+$40)</option><option value="55">Chili (+$55)</option></select></div>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center;"><div class="controles"><button type="button" class="btn-qty" onclick="actualizar('bg1', -1, 80)">-</button><span id="cant-bg1">0</span><button type="button" class="btn-qty" onclick="actualizar('bg1', 1, 80)">+</button></div></div>
+            </div>
+        </div>
+
+        <div class="producto-item" onclick="seleccionarProducto('bg2', 95)" id="item-bg2">
+            <div class="prod-main"><img src="pizza-burger.jpg" class="img-prod"><div class="info-prod"><strong>Pizza Burger</strong><br><span class="precio-unit">$95.00</span></div><div id="badge-bg2" class="badge-cant">0</div></div>
+            <div id="detalles-bg2" class="detalles-producto" onclick="event.stopPropagation()">
+                <div class="ingredientes-grid">
+                    <label><input type="checkbox" data-pref="BG2_Mayo" checked onchange="saveIng(this)"> Mayonesa</label>
+                    <label><input type="checkbox" data-pref="BG2_Jito" onchange="saveIng(this)"> Jitomate</label>
+                    <label><input type="checkbox" data-pref="BG2_Cebo" checked onchange="saveIng(this)"> Cebolla</label>
+                </div>
+                <div class="papas-box">
+                    <select id="papas-bg2" onchange="togglePapas('bg2')"><option value="no">Sin papas</option><option value="si">Con papas</option></select>
+                    <div id="tipo-bg2" style="display:none; margin-top:5px;"><select id="sel-bg2" onchange="cambioPapas('bg2')"><option value="0">-- Elige papas --</option><option value="40">Normales (+$40)</option><option value="55">Chili (+$55)</option></select></div>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center;"><div class="controles"><button type="button" class="btn-qty" onclick="actualizar('bg2', -1, 95)">-</button><span id="cant-bg2">0</span><button type="button" class="btn-qty" onclick="actualizar('bg2', 1, 95)">+</button></div></div>
+            </div>
+        </div>
+
+        <div class="producto-item" onclick="seleccionarProducto('bg3', 95)" id="item-bg3">
+            <div class="prod-main"><img src="chili-burger.jpg" class="img-prod"><div class="info-prod"><strong>Chili Burger</strong><br><span class="precio-unit">$95.00</span></div><div id="badge-bg3" class="badge-cant">0</div></div>
+            <div id="detalles-bg3" class="detalles-producto" onclick="event.stopPropagation()">
+                <div class="ingredientes-grid">
+                    <label><input type="checkbox" data-pref="BG3_Mayo" checked onchange="saveIng(this)"> Mayonesa</label>
+                    <label><input type="checkbox" data-pref="BG3_Jito" onchange="saveIng(this)"> Jitomate</label>
+                    <label><input type="checkbox" data-pref="BG3_Cebo" checked onchange="saveIng(this)"> Cebolla</label>
+                </div>
+                <div class="papas-box">
+                    <select id="papas-bg3" onchange="togglePapas('bg3')"><option value="no">Sin papas</option><option value="si">Con papas</option></select>
+                    <div id="tipo-bg3" style="display:none; margin-top:5px;"><select id="sel-bg3" onchange="cambioPapas('bg3')"><option value="0">-- Elige papas --</option><option value="40">Normales (+$40)</option><option value="55">Chili (+$55)</option></select></div>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center;"><div class="controles"><button type="button" class="btn-qty" onclick="actualizar('bg3', -1, 95)">-</button><span id="cant-bg3">0</span><button type="button" class="btn-qty" onclick="actualizar('bg3', 1, 95)">+</button></div></div>
+            </div>
+        </div>
+
+        <div class="producto-item" onclick="seleccionarProducto('bg4', 105)" id="item-bg4">
+            <div class="prod-main"><img src="hawaiana.jpg" class="img-prod"><div class="info-prod"><strong>Hawaiana</strong><br><span class="precio-unit">$105.00</span></div><div id="badge-bg4" class="badge-cant">0</div></div>
+            <div id="detalles-bg4" class="detalles-producto" onclick="event.stopPropagation()">
+                <div class="ingredientes-grid">
+                    <label><input type="checkbox" data-pref="BG4_Mayo" checked onchange="saveIng(this)"> Mayonesa</label>
+                    <label><input type="checkbox" data-pref="BG4_Jito" checked onchange="saveIng(this)"> Jitomate</label>
+                    <label><input type="checkbox" data-pref="BG4_Cebo" checked onchange="saveIng(this)"> Cebolla</label>
+                </div>
+                <div class="papas-box">
+                    <select id="papas-bg4" onchange="togglePapas('bg4')"><option value="no">Sin papas</option><option value="si">Con papas</option></select>
+                    <div id="tipo-bg4" style="display:none; margin-top:5px;"><select id="sel-bg4" onchange="cambioPapas('bg4')"><option value="0">-- Elige papas --</option><option value="40">Normales (+$40)</option><option value="55">Chili (+$55)</option></select></div>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center;"><div class="controles"><button type="button" class="btn-qty" onclick="actualizar('bg4', -1, 105)">-</button><span id="cant-bg4">0</span><button type="button" class="btn-qty" onclick="actualizar('bg4', 1, 105)">+</button></div></div>
+            </div>
+        </div>
+
+        <div class="categoria-titulo">🍟 Papas Individuales</div>
+        
+        <div class="producto-item" onclick="seleccionarProducto('p1', 40)" id="item-p1">
+            <div class="prod-main"><img src="papas.jpg" class="img-prod"><div class="info-prod"><strong>Orden Papas</strong><br><span class="precio-unit">$40.00</span></div><div id="badge-p1" class="badge-cant">0</div></div>
+            <div id="detalles-p1" class="detalles-producto" onclick="event.stopPropagation()">
+                <div style="display:flex; justify-content:space-between; align-items:center;"><span>Cant:</span><div class="controles"><button type="button" class="btn-qty" onclick="actualizar('p1', -1, 40)">-</button><span id="cant-p1">0</span><button type="button" class="btn-qty" onclick="actualizar('p1', 1, 40)">+</button></div></div>
+            </div>
+        </div>
+
+        <div class="producto-item" onclick="seleccionarProducto('p2', 55)" id="item-p2">
+            <div class="prod-main"><img src="chili-papas.jpg" class="img-prod"><div class="info-prod"><strong>Chili Papas</strong><br><span class="precio-unit">$55.00</span></div><div id="badge-p2" class="badge-cant">0</div></div>
+            <div id="detalles-p2" class="detalles-producto" onclick="event.stopPropagation()">
+                <div style="display:flex; justify-content:space-between; align-items:center;"><div class="controles"><button type="button" class="btn-qty" onclick="actualizar('p2', -1, 55)">-</button><span id="cant-p2">0</span><button type="button" class="btn-qty" onclick="actualizar('p2', 1, 55)">+</button></div></div>
+            </div>
+        </div>
+
+        <div class="total-box">
+            <div style="display:flex; justify-content:space-between; font-size:1.3em; font-weight:bold;"><span>Total:</span><span id="total-display">$0.00</span></div>
+            <div style="margin-top:15px; border-top:1px solid #555; padding-top:15px;">
+                <input type="text" name="Nombre_Cliente" id="user-name" placeholder="Tu nombre" required oninput="saveUserData()" style="margin-bottom:10px;">
+                <input type="text" name="WhatsApp_Cliente" id="user-phone" placeholder="WhatsApp" required oninput="saveUserData()" style="margin-bottom:10px;">
+                <select name="Metodo_Entrega" id="user-delivery" onchange="saveUserData()">
+                    <option value="Local">Para comer en el local</option>
+                    <option value="Llevar">Para llevar</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-enviar" id="btn-final">Enviar Pedido 🚀</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    let subtotal = 0; let papasExtras = {};
+
+    function saveUserData() {
+        localStorage.setItem('f_name', document.getElementById('user-name').value);
+        localStorage.setItem('f_phone', document.getElementById('user-phone').value);
+        localStorage.setItem('f_deliv', document.getElementById('user-delivery').value);
+    }
+    function saveIng(cb) { localStorage.setItem('pref_' + cb.dataset.pref, cb.checked); }
+
+    function loadMemory() {
+        if(localStorage.getItem('f_name')) {
+            document.getElementById('user-name').value = localStorage.getItem('f_name');
+            document.getElementById('welcome-msg').innerText = "¡Qué bueno verte, " + localStorage.getItem('f_name') + "! 👋";
+        }
+        if(localStorage.getItem('f_phone')) document.getElementById('user-phone').value = localStorage.getItem('f_phone');
+        if(localStorage.getItem('f_deliv')) document.getElementById('user-delivery').value = localStorage.getItem('f_deliv');
+        document.querySelectorAll('input[type="checkbox"][data-pref]').forEach(cb => {
+            const val = localStorage.getItem('pref_' + cb.dataset.pref);
+            if(val !== null) cb.checked = (val === 'true');
+        });
+        if (localStorage.getItem('theme') === 'dark') { document.body.classList.add('dark-mode'); document.getElementById('theme-btn').innerText = '☀️'; }
+    }
+
+    // --- GENERAR RESUMEN PARA COCINA ---
+    function generarComanda() {
+        let resumen = "";
+        const productos = [
+            { id: 'hd1', nom: 'Dogo Norm', ings: ['HD1_Mayo', 'HD1_Jito', 'HD1_Cebo'] },
+            { id: 'hd2', nom: 'Pizza Dogo', ings: ['HD2_Mayo', 'HD2_Jito', 'HD2_Cebo'] },
+            { id: 'hd3', nom: 'Chili Dogo', ings: ['HD3_Mayo', 'HD3_Jito', 'HD3_Cebo'] },
+            { id: 'hd4', nom: 'Bulldog', ings: ['HD4_Mayo', 'HD4_Jito', 'HD4_Cebo'] },
+            { id: 'bg1', nom: 'Burger Norm', ings: ['BG1_Mayo', 'BG1_Jito', 'BG1_Cebo'], papas: 'sel-bg1' },
+            { id: 'bg2', nom: 'Pizza Burger', ings: ['BG2_Mayo', 'BG2_Jito', 'BG2_Cebo'], papas: 'sel-bg2' },
+            { id: 'bg3', nom: 'Chili Burger', ings: ['BG3_Mayo', 'BG3_Jito', 'BG3_Cebo'], papas: 'sel-bg3' },
+            { id: 'bg4', nom: 'Hawaiana', ings: ['BG4_Mayo', 'BG4_Jito', 'BG4_Cebo'], papas: 'sel-bg4' },
+            { id: 'p1', nom: 'Orden Papas' },
+            { id: 'p2', nom: 'Chili Papas' }
+        ];
+
+        productos.forEach(p => {
+            const cant = parseInt(document.getElementById('cant-' + p.id).innerText);
+            if (cant > 0) {
+                let det = "";
+                if(p.ings) {
+                    p.ings.forEach(ing => {
+                        const cb = document.querySelector(`[data-pref="${ing}"]`);
+                        if(cb && !cb.checked) det += ` -Sin ${ing.split('_')[1]}`;
+                    });
+                }
+                if(p.papas) {
+                    const v = document.getElementById(p.papas).value;
+                    if(v != "0") det += v == "40" ? " [+Papas Norm]" : " [+Papas Chili]";
+                }
+                resumen += `${cant}x ${p.nom}${det} | `;
+            }
+        });
+        document.getElementById('pedido-resumido').value = resumen + " TOTAL: $" + subtotal;
+    }
+
+    function toggleTheme() {
+        const isDark = document.body.classList.toggle('dark-mode');
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        document.getElementById('theme-btn').innerText = isDark ? '☀️' : '🌙';
+    }
+
+    function seleccionarProducto(id, precio) {
+        const span = document.getElementById('cant-'+id);
+        if(parseInt(span.innerText) === 0) actualizar(id, 1, precio);
+        abrirDetalles(id);
+    }
+
+    function abrirDetalles(id) {
+        document.querySelectorAll('.detalles-producto').forEach(el => el.style.display = 'none');
+        document.querySelectorAll('.producto-item').forEach(el => el.classList.remove('abierto'));
+        document.getElementById('detalles-'+id).style.display = 'flex';
+        document.getElementById('item-'+id).classList.add('abierto');
+    }
+
+    function actualizar(id, c, p) {
+        const span = document.getElementById('cant-'+id);
+        const badge = document.getElementById('badge-'+id);
+        let v = parseInt(span.innerText) + c;
+        if(v < 0) return;
+        span.innerText = v; badge.innerText = v;
+        badge.style.display = v > 0 ? 'block' : 'none';
+        subtotal += (c * p);
+        render();
+    }
+
+    function togglePapas(id) {
+        const div = document.getElementById('tipo-'+id);
+        div.style.display = document.getElementById('papas-'+id).value === 'si' ? 'block' : 'none';
+        if(div.style.display === 'none') { document.getElementById('sel-'+id).value = "0"; cambioPapas(id); }
+    }
+
+    function cambioPapas(id) {
+        let v = parseInt(document.getElementById('sel-'+id).value) || 0;
+        subtotal -= (papasExtras[id] || 0);
+        subtotal += v; papasExtras[id] = v;
+        render();
+    }
+
+    function render() { document.getElementById('total-display').innerText = "$" + subtotal.toFixed(2); }
+
+    function verificarHorario() {
+        const ahora = new Date();
+        const dia = ahora.getDay(); 
+        const hora = ahora.getHours() * 100 + ahora.getMinutes();
+        const btn = document.getElementById('btn-final');
+        const status = document.getElementById('status-negocio');
+        const abierto = (dia >= 2 && dia <= 6) && (hora >= 1900 && hora <= 2330);
+        if (!abierto) {
+            btn.disabled = false;
+            status.innerHTML = "<span style='color: #e74c3c;'>🔴 CERRADO (Mar-Sáb 7pm-11:30pm)</span>";
+        } else {
+            btn.disabled = true;
+            status.innerHTML = "<span style='color: #2ecc71;'>🟢 ABIERTO</span>";
+        }
+    }
+
+    document.getElementById('orderForm').onsubmit = function() { generarComanda(); return true; };
+
+    window.onload = () => { loadMemory(); verificarHorario(); setInterval(verificarHorario, 60000); };
+</script>
+</body>
+</html>
